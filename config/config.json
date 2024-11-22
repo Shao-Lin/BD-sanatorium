@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "MyDatabase",
+    "database": "sanatorium",
+    "host": "127.0.0.1",
+    "dialect": "postgres"  
+  },
+  "test": {
+    "username": "postgres",
+    "password": "MyDatabase",
+    "database": "sanatorium_test",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "postgres",
+    "password": "MyDatabase",
+    "database": "sanatorium_production",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  }
+}

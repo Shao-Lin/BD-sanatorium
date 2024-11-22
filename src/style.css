@@ -1,3 +1,23 @@
 body {
   color: burlywood;
 }
+.centered-top {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background-color: #fff;
+  padding: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.centered-top .nav-tabs {
+  display: inline-flex;
+}
+
+#nav-tabContent {
+  margin-top: 60px; /* Задайте высоту отступа, равную высоте навигации */
+}
+
