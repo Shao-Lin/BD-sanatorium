@@ -1,5 +1,6 @@
 import express from 'express';
 import procedureController from '../controllers/procedureController.js';
+import { Procedure } from '../models/index.js';
 
 const router = express.Router();
 
@@ -13,16 +14,28 @@ router.post('/procedures', async (req, res) => {
   }
 });
 
+// procedure.routes.js
 router.get('/procedures', async (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 10; // Количество записей на страницу
+  const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
+  const offset = (page - 1) * limit;
+
   try {
-    console.log('[LOG] Fetching all procedures');
-    const procedures = await procedureController.getAll();
-    res.status(200).json(procedures);
+    const { rows: procedures, count } = await Procedure.findAndCountAll({
+      limit,
+      offset,
+    });
+
+    res.json({
+      data: procedures,
+      totalPages: Math.ceil(count / limit), // Общее количество страниц
+      currentPage: page, // Текущая страница
+    });
   } catch (error) {
-    console.error('[ERROR] Fetching procedures:', error);
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 router.get('/procedures/:id', async (req, res) => {
   try {

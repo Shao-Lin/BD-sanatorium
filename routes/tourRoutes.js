@@ -1,5 +1,7 @@
 import express from 'express';
 import tourController from '../controllers/tourController.js';
+import { Tour } from '../models/index.js'; // Убедитесь, что путь корректен
+
 
 const router = express.Router();
 
@@ -15,11 +17,23 @@ router.post('/tours', async (req, res) => {
 
 // Получение всех Tours
 router.get('/tours', async (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 10; // Количество записей на страницу
+  const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
+  const offset = (page - 1) * limit;
+
   try {
-    const tours = await tourController.getAll();
-    res.status(200).json(tours);
+    const { rows: tours, count } = await Tour.findAndCountAll({
+      limit,
+      offset,
+    });
+
+    res.json({
+      data: tours,
+      totalPages: Math.ceil(count / limit), // Общее количество страниц
+      currentPage: page, // Текущая страница
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 

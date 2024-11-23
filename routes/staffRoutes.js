@@ -1,5 +1,6 @@
 import express from 'express';
 import staffController from '../controllers/staffController.js';
+import { Staff } from '../models/index.js'; // Убедитесь, что путь корректен
 
 const router = express.Router();
 
@@ -14,13 +15,26 @@ router.post('/staffs', async (req, res) => {
 });
 
 router.get('/staffs', async (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 10; // Количество записей на страницу
+  const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
+  const offset = (page - 1) * limit;
+
   try {
-    const staffs = await staffController.getAll();
-    res.status(200).json(staffs);
+    const { rows: staff, count } = await Staff.findAndCountAll({
+      limit,
+      offset,
+    });
+
+    res.json({
+      data: staff,
+      totalPages: Math.ceil(count / limit), // Общее количество страниц
+      currentPage: page, // Текущая страница
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 router.get('/staffs/:id', async (req, res) => {
   try {

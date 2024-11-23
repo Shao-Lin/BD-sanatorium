@@ -1,5 +1,6 @@
 import express from 'express';
 import procedureTicketController from '../controllers/procedureTicketController.js';
+import { ProcedureTicket } from '../models/index.js';
 
 const router = express.Router();
 
@@ -16,14 +17,28 @@ router.post('/procedureTickets', async (req, res) => {
 });
 
 // Получение всех ProcedureTickets
+// procedureTicket.routes.js
 router.get('/procedureTickets', async (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 10; // Количество записей на страницу
+  const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
+  const offset = (page - 1) * limit;
+
   try {
-    const procedureTickets = await procedureTicketController.getAll();
-    res.status(200).json(procedureTickets);
+    const { rows: procedureTickets, count } = await ProcedureTicket.findAndCountAll({
+      limit,
+      offset,
+    });
+
+    res.json({
+      data: procedureTickets,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 // Получение ProcedureTicket по ID
 router.get('/procedureTickets/:id', async (req, res) => {

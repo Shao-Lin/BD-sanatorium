@@ -1,5 +1,6 @@
 import express from 'express';
 import hotelRoomController from '../controllers/hotelRoomController.js';
+import { HotelRoom } from '../models/index.js';
 
 const router = express.Router();
 
@@ -13,15 +14,28 @@ router.post('/hotelRooms', async (req, res) => {
   }
 });
 
+// hotelRoom.routes.js
 router.get('/hotelRooms', async (req, res) => {
-  const { type } = req.query;
+  const limit = parseInt(req.query.limit, 10) || 10; // Количество записей на страницу
+  const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
+  const offset = (page - 1) * limit;
+
   try {
-    const hotelRooms = await hotelRoomController.getAll();
-    res.status(200).json(hotelRooms);
+    const { rows: hotelRooms, count } = await HotelRoom.findAndCountAll({
+      limit,
+      offset,
+    });
+
+    res.json({
+      data: hotelRooms,
+      totalPages: Math.ceil(count / limit), // Общее количество страниц
+      currentPage: page, // Текущая страница
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 router.get('/hotelRooms/:id', async (req, res) => {
   try {

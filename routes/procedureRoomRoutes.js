@@ -1,5 +1,6 @@
 import express from 'express';
 import procedureRoomController from '../controllers/procedureRoomController.js';
+import { ProcedureRoom } from '../models/index.js';
 
 const router = express.Router();
 
@@ -13,14 +14,28 @@ router.post('/procedureRooms', async (req, res) => {
   }
 });
 
+// procedureRoom.routes.js
 router.get('/procedureRooms', async (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 10; // Количество записей на страницу
+  const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
+  const offset = (page - 1) * limit;
+
   try {
-    const procedureRooms = await procedureRoomController.getAll();
-    res.status(200).json(procedureRooms);
+    const { rows: procedureRooms, count } = await ProcedureRoom.findAndCountAll({
+      limit,
+      offset,
+    });
+
+    res.json({
+      data: procedureRooms,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 router.get('/procedureRooms/:id', async (req, res) => {
   try {

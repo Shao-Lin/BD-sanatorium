@@ -1,5 +1,6 @@
 import express from 'express';
 import clientController from '../controllers/clientController.js';
+import { Client } from '../models/index.js';
 
 const router = express.Router();
 
@@ -12,14 +13,28 @@ router.post('/clients', async (req, res) => {
   }
 });
 
+// client.routes.js
 router.get('/clients', async (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const page = parseInt(req.query.page, 10) || 1;
+  const offset = (page - 1) * limit;
+
   try {
-    const clients = await clientController.getAll();
-    res.json(clients);
+    const { rows: clients, count } = await Client.findAndCountAll({
+      limit,
+      offset,
+    });
+
+    res.json({
+      data: clients, // Это данные клиентов
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Ошибка получения клиентов' });
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 router.get('/clients:id', async (req, res) => {
   try {
