@@ -47,22 +47,44 @@ router.get('/hotelRooms/:id', async (req, res) => {
   }
 });
 
-router.put('/hotelRooms/:id', async (req, res) => {
+router.put('/api/related/nullify/:nameTable/:id', async (req, res) => {
+  const { nameTable, id } = req.params;
+  console.log('nameTable:', nameTable, 'id:', id);
+
   try {
-    const updatedHotelRoom = await hotelRoomController.update(req.params.id, req.body);
-    res.status(200).json(updatedHotelRoom);
+    if (nameTable === 'hotelRoom') {
+      // Обнуляем записи для hotelRoom в таблице tour
+      await db.query(
+        'UPDATE tour SET room_id = NULL WHERE room_id = $1',
+        [id]
+      );
+    }
+    // Здесь можно добавить дополнительные правила для других таблиц, если потребуется
+
+    res.status(200).json({
+      message: `Related records for ${nameTable} ID ${id} have been nullified.`,
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Error nullifying related records:', error);
+    res.status(500).json({ message: 'Failed to nullify related records' });
   }
 });
 
+
+
 router.delete('/hotelRooms/:id', async (req, res) => {
+  const { id } = req.params;
+
   try {
-    await hotelRoomController.delete(req.params.id);
-    res.status(204).send();
+    const deletedCount = await HotelRoom.destroy({ where: { room_id: id } }); // Используем room_id
+    if (deletedCount === 0) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+    res.json({ message: 'Record deleted successfully' });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 export default router;

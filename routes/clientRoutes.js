@@ -57,12 +57,17 @@ router.put('/clients:id', async (req, res) => {
   }
 });
 
-router.delete('/clients:id', async (req, res) => {
+router.delete('/clients/:id', async (req, res) => {
+  const { id } = req.params;
+
   try {
-    await clientController.delete(req.params.id);
-    res.json({ message: 'Клиент удален' });
+    const deletedCount = await Client.destroy({ where: { client_id: id } }); // Используем room_id
+    if (deletedCount === 0) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+    res.json({ message: 'Record deleted successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'Ошибка удаления клиента' });
+    res.status(500).json({ error: error.message });
   }
 });
 

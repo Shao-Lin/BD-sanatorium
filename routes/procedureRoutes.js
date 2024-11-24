@@ -57,11 +57,16 @@ router.put('/procedures/:id', async (req, res) => {
 });
 
 router.delete('/procedures/:id', async (req, res) => {
+  const { id } = req.params;
+
   try {
-    await procedureController.delete(req.params.id);
-    res.status(204).send();
+    const deletedCount = await Procedure.destroy({ where: { procedure_id: id } }); // Используем room_id
+    if (deletedCount === 0) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+    res.json({ message: 'Record deleted successfully' });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 
