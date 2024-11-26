@@ -9,10 +9,18 @@ const router = express.Router();
 // Создание ProcedureTicket
 router.post('/procedureTickets', async (req, res) => {
   try {
-    const procedureTicket = await procedureTicketController.create(req.body);
-    res.status(201).json(procedureTicket);
+    const { ticket_procedure_id, procedure_room_id, procedure_id,staff_id,date_procedure,tour_id } = req.body;
+
+    // Проверяем, что все необходимые поля переданы
+    if (!ticket_procedure_id || !procedure_room_id|| !procedure_id || !staff_id || !date_procedure || !tour_id) {
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    const client = await procedureTicketController.create({ ticket_procedure_id, procedure_room_id, procedure_id,staff_id,date_procedure,tour_id });
+    res.status(201).json(client); // Возвращаем созданную запись
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Ошибка создания клиента:', error.message);
+    res.status(500).json({ error: 'Ошибка создания клиента' });
   }
 });
 

@@ -6,9 +6,17 @@ const router = express.Router();
 
 router.post('/clients', async (req, res) => {
   try {
-    const client = await clientController.create(req.body);
-    res.status(201).json(client);
+    const { client_id, birth_date, phone_number } = req.body;
+
+    // Проверяем, что все необходимые поля переданы
+    if (!client_id || !birth_date || !phone_number) {
+      return res.status(400).json({ error: 'All fields (client_id, birth_date, phone_number) are required.' });
+    }
+
+    const client = await clientController.create({ client_id, birth_date, phone_number });
+    res.status(201).json(client); // Возвращаем созданную запись
   } catch (error) {
+    console.error('Ошибка создания клиента:', error.message);
     res.status(500).json({ error: 'Ошибка создания клиента' });
   }
 });

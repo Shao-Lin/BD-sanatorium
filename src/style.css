@@ -1,6 +1,7 @@
 body {
   color: burlywood;
 }
+
 .centered-top {
   position: fixed;
   top: 0;
@@ -18,6 +19,32 @@ body {
 }
 
 #nav-tabContent {
-  margin-top: 60px; /* Задайте высоту отступа, равную высоте навигации */
+  margin-top: 260px; /* Сделано на 200px ниже */
 }
 
+#nav-tabContent .show {
+  margin-top: 20px; /* Отступ сверху для таблицы */
+}
+
+#pagination {
+  margin-top: 20px;
+}
+
+#pagination .page-item {
+  margin-right: 10px;
+}
+
+/* Кнопка с позиционированием справа */
+#createButton {
+  position: absolute;
+  top: 180px; /* Задаем точную высоту, чтобы кнопка была на нужном уровне */
+  right: 80px; /* Расстояние от правого края */
+  padding: 10px 20px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #28a745; /* Зеленый фон */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}

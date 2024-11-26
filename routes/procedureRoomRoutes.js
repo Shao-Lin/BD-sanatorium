@@ -7,10 +7,18 @@ const router = express.Router();
 // Аналогично создаём маршруты для ProcedureRoom
 router.post('/procedureRooms', async (req, res) => {
   try {
-    const procedureRoom = await procedureRoomController.create(req.body);
-    res.status(201).json(procedureRoom);
+    const { room_id, location, service_type,occupancy_status } = req.body;
+
+    // Проверяем, что все необходимые поля переданы
+    if (!room_id || !location|| !service_type || !occupancy_status) {
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    const client = await procedureRoomController.create({ room_id, location, service_type,occupancy_status });
+    res.status(201).json(client); // Возвращаем созданную запись
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Ошибка создания клиента:', error.message);
+    res.status(500).json({ error: 'Ошибка создания клиента' });
   }
 });
 

@@ -7,10 +7,18 @@ const router = express.Router();
 // Аналогично создаём маршруты для Procedure
 router.post('/procedures', async (req, res) => {
   try {
-    const procedure = await procedureController.create(req.body);
-    res.status(201).json(procedure);
+    const { procedure_id, name, price } = req.body;
+
+    // Проверяем, что все необходимые поля переданы
+    if (!procedure_id || !price|| !name ) {
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    const client = await procedureController.create({ procedure_id, name, price });
+    res.status(201).json(client); // Возвращаем созданную запись
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Ошибка создания клиента:', error.message);
+    res.status(500).json({ error: 'Ошибка создания клиента' });
   }
 });
 

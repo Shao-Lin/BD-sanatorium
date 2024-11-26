@@ -7,10 +7,18 @@ const router = express.Router();
 // Аналогично создаём маршруты для Staff
 router.post('/staffs', async (req, res) => {
   try {
-    const staff = await staffController.create(req.body);
-    res.status(201).json(staff);
+    const { staff_id, full_name, phone_number,position} = req.body;
+
+    // Проверяем, что все необходимые поля переданы
+    if (!staff_id || !full_name|| !phone_number || !position ) {
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    const client = await staffController.create({ staff_id, full_name, phone_number,position });
+    res.status(201).json(client); // Возвращаем созданную запись
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Ошибка создания клиента:', error.message);
+    res.status(500).json({ error: 'Ошибка создания клиента' });
   }
 });
 

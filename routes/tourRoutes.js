@@ -8,10 +8,18 @@ const router = express.Router();
 // Создание Tour
 router.post('/tours', async (req, res) => {
   try {
-    const tour = await tourController.create(req.body);
-    res.status(201).json(tour);
+    const { tour_id, client_id, check_in_date,check_out_date,tour_cost,room_id } = req.body;
+
+    // Проверяем, что все необходимые поля переданы
+    if (!tour_id || !client_id|| !check_in_date || !check_out_date || !tour_cost || !room_id) {
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    const client = await tourController.create({ tour_id, client_id, check_in_date,check_out_date,tour_cost,room_id });
+    res.status(201).json(client); // Возвращаем созданную запись
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Ошибка создания клиента:', error.message);
+    res.status(500).json({ error: 'Ошибка создания клиента' });
   }
 });
 

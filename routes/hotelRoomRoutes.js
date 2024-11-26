@@ -7,10 +7,18 @@ const router = express.Router();
 // Операции CRUD для HotelRoom
 router.post('/hotelRooms', async (req, res) => {
   try {
-    const hotelRoom = await hotelRoomController.create(req.body);
-    res.status(201).json(hotelRoom);
+    const { room_id, price, room_type,booking_status,occupancy_status } = req.body;
+
+    // Проверяем, что все необходимые поля переданы
+    if (!room_id || !price|| !room_type || !booking_status || !occupancy_status) {
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    const client = await hotelRoomController.create({ room_id, price, room_type,booking_status,occupancy_status });
+    res.status(201).json(client); // Возвращаем созданную запись
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Ошибка создания клиента:', error.message);
+    res.status(500).json({ error: 'Ошибка создания клиента' });
   }
 });
 
