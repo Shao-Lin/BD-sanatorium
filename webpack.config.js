@@ -1,15 +1,19 @@
 import path from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import CopyWebpackPlugin from 'copy-webpack-plugin'; // Добавьте этот плагин
 const __dirname = new URL('.', import.meta.url).pathname;
 
 export default {
   mode: process.env.NODE_ENV || 'development',
-  entry: './src/index.js', // Главный файл входа
+  entry: {
+    main: './src/index.js', // Главная точка входа
+    update: './src/update.js', // Вход для update.js
+  },
   output: {
-    filename: 'bundle.js', // Имя файла сборки
-    path: path.resolve(__dirname, 'dist'), // Куда будет сохранён файл
-    publicPath: '/', // Обслуживание файлов с корня
-    clean: true, // Очистка dist перед новой сборкой
+    filename: '[name].bundle.js', // Создаст main.bundle.js и update.bundle.js
+    path: path.resolve(__dirname, 'dist'),
+    publicPath: '/',
+    clean: true,
   },
   module: {
     rules: [
@@ -41,6 +45,11 @@ export default {
   plugins: [
     new HtmlWebpackPlugin({
       template: './template.html',
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: './update.html', to: './' }, // Копируем update.html в dist
+      ],
     }),
   ],
   devServer: {

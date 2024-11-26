@@ -16,7 +16,7 @@ router.post('/procedures', async (req, res) => {
 
 // procedure.routes.js
 router.get('/procedures', async (req, res) => {
-  const limit = parseInt(req.query.limit, 10) || 10; // Количество записей на страницу
+  const limit = 100 // Количество записей на страницу
   const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
   const offset = (page - 1) * limit;
 
@@ -24,6 +24,7 @@ router.get('/procedures', async (req, res) => {
     const { rows: procedures, count } = await Procedure.findAndCountAll({
       limit,
       offset,
+      ordrer: [],
     });
 
     res.json({
@@ -48,11 +49,25 @@ router.get('/procedures/:id', async (req, res) => {
 });
 
 router.put('/procedures/:id', async (req, res) => {
+  const { id } = req.params;  // ID, по которому ищем запись
+  const updatedData = req.body;  // Новые данные для обновления
+
   try {
-    const updatedProcedure = await procedureController.update(req.params.id, req.body);
-    res.status(200).json(updatedProcedure);
+    // Обновляем данные сотрудника по staff_id
+    const [updatedCount] = await Procedure.update(updatedData, {
+      where: { procedure_id: id },
+    });
+    
+    // Если запись не найдена или не было обновлено, возвращаем ошибку
+    if (updatedCount === 0) {
+      return res.status(404).json({ error: 'Record not found or not updated' });
+    }
+
+    // Если запись обновлена, возвращаем успешный ответ
+    res.json({ message: 'Record updated successfully' });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Error updating record:', error);
+    res.status(500).json({ error: 'Failed to update record' });
   }
 });
 

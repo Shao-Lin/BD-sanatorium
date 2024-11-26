@@ -1,64 +1,14 @@
 import pagination from "./pagination.js";
 import axios from "axios";
+import { handleDelete,handleUpdate } from "./hendleDeleteUpdate.js";
 
-
-const handleDelete = async (id, nameTable) => {
-  try {
-    const confirmed = confirm('Are you sure you want to delete this record?');
-    if (!confirmed) return;
-
-    // Удаление записи
-    await axios.delete(`/api/${nameTable}/${id}`);
-
-    alert('Record deleted successfully');
-
-    // Обновляем данные таблицы после удаления
-    await loadTableData(nameTable);
-  } catch (error) {
-    console.error('Ошибка удаления записи:', error);
-
-    if (error.response && error.response.status === 409) {
-      alert('Cannot delete record due to database constraints.');
-    } else {
-      alert('Failed to delete record.');
-    }
-  }
-};
-
-
-
-// Обновление таблицы
-const loadTableData = async (nameTable) => {
-  try {
-    const response = await axios.get(`/api/${nameTable}`);
-    const { data, totalPages, currentPage } = response.data;
-
-    // Рендерим таблицу
-    const targetTab = document.querySelector(`#nav-${nameTable}-tab`);
-    console.log(targetTab)
-    renderTable(data, targetTab, totalPages, currentPage, nameTable);
-  } catch (error) {
-    console.error('Ошибка загрузки данных:', error);
-    alert('Failed to load data.');
-  }
-};
-const handleUpdate = async (item) => {
-  const newName = prompt('Enter new name:', item.name || '');
-  if (!newName) return;
-
-  try {
-    await axios.put(`/api/yourEntity/${item.id}`, { name: newName });
-    alert('Record updated successfully');
-    loadTableData('yourEntity'); // Обновляем данные таблицы
-  } catch (error) {
-    console.error('Ошибка обновления записи:', error);
-    alert('Failed to update record');
-  }
-};
 
 const renderTable = (data, target, totalPages, currentPage, nameTable) => {
   const titleObj = data[0]; // Предполагаем, что первая запись содержит заголовки
   const titles = Object.keys(titleObj);
+
+  const idTable = titles[0]
+  const sortedData = data.sort((a, b) => a[idTable] - b[idTable]);
   const table = document.createElement("table");
   table.classList.add("table");
 
@@ -90,7 +40,6 @@ const renderTable = (data, target, totalPages, currentPage, nameTable) => {
     }
 
     const idContent = target.getAttribute("data-bs-target");
-   
     const tabContent = document.querySelector(idContent);
     if (tabContent) {
       tabContent.textContent = ""; // Очищаем контент
@@ -106,7 +55,7 @@ const renderTable = (data, target, totalPages, currentPage, nameTable) => {
 
   // Тело таблицы
   const tbody = document.createElement("tbody");
-  data.forEach((item) => {
+  sortedData.forEach((item) => {
     const tr = document.createElement("tr");
     Object.values(item).forEach((value) => {
       const td = document.createElement("td");
@@ -126,8 +75,9 @@ const renderTable = (data, target, totalPages, currentPage, nameTable) => {
     const updateButton = document.createElement('button');
     updateButton.textContent = 'Update';
     updateButton.classList.add('btn', 'btn-primary', 'btn-sm');
-    updateButton.addEventListener('click', () => handleUpdate(item, nameTable)); // Привязка функции обновления
+    updateButton.addEventListener('click', () => handleUpdate(item[ID], nameTable)); // Привязка функции обновления
     actionsTd.appendChild(updateButton);
+    
 
     tr.appendChild(actionsTd);
     tbody.appendChild(tr);

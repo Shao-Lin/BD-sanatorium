@@ -16,18 +16,18 @@ router.post('/hotelRooms', async (req, res) => {
 
 // hotelRoom.routes.js
 router.get('/hotelRooms', async (req, res) => {
-  const limit = parseInt(req.query.limit, 10) || 10; // Количество записей на страницу
+  const limit = 100; // Количество записей на страницу
   const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
   const offset = (page - 1) * limit;
-
   try {
-    const { rows: hotelRooms, count } = await HotelRoom.findAndCountAll({
+    const { rows: room, count } = await HotelRoom.findAndCountAll({
       limit,
       offset,
+      order:[],
     });
 
     res.json({
-      data: hotelRooms,
+      data: room,
       totalPages: Math.ceil(count / limit), // Общее количество страниц
       currentPage: page, // Текущая страница
     });
@@ -47,26 +47,26 @@ router.get('/hotelRooms/:id', async (req, res) => {
   }
 });
 
-router.put('/api/related/nullify/:nameTable/:id', async (req, res) => {
-  const { nameTable, id } = req.params;
-  console.log('nameTable:', nameTable, 'id:', id);
-
+router.put('/hotelRooms/:id', async (req, res) => {
+  const { id } = req.params;  // ID, по которому ищем запись
+  const updatedData = req.body;  // Новые данные для обновления
+ 
   try {
-    if (nameTable === 'hotelRoom') {
-      // Обнуляем записи для hotelRoom в таблице tour
-      await db.query(
-        'UPDATE tour SET room_id = NULL WHERE room_id = $1',
-        [id]
-      );
-    }
-    // Здесь можно добавить дополнительные правила для других таблиц, если потребуется
-
-    res.status(200).json({
-      message: `Related records for ${nameTable} ID ${id} have been nullified.`,
+    // Обновляем данные сотрудника по staff_id
+    const [updatedCount] = await HotelRoom.update(updatedData, {
+      where: { room_id: id },
     });
+    
+    // Если запись не найдена или не было обновлено, возвращаем ошибку
+    if (updatedCount === 0) {
+      return res.status(404).json({ error: 'Record not found or not updated' });
+    }
+
+    // Если запись обновлена, возвращаем успешный ответ
+    res.json({ message: 'Record updated successfully' });
   } catch (error) {
-    console.error('Error nullifying related records:', error);
-    res.status(500).json({ message: 'Failed to nullify related records' });
+    console.error('Error updating record:', error);
+    res.status(500).json({ error: 'Failed to update record' });
   }
 });
 

@@ -15,20 +15,20 @@ router.post('/clients', async (req, res) => {
 
 // client.routes.js
 router.get('/clients', async (req, res) => {
-  const limit = parseInt(req.query.limit, 10) || 10;
-  const page = parseInt(req.query.page, 10) || 1;
+  const limit = 100; // Количество записей на страницу
+  const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
   const offset = (page - 1) * limit;
-
   try {
-    const { rows: clients, count } = await Client.findAndCountAll({
+    const { rows: client, count } = await Client.findAndCountAll({
       limit,
       offset,
+      order:[],
     });
 
     res.json({
-      data: clients, // Это данные клиентов
-      totalPages: Math.ceil(count / limit),
-      currentPage: page,
+      data: client,
+      totalPages: Math.ceil(count / limit), // Общее количество страниц
+      currentPage: page, // Текущая страница
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -36,37 +36,55 @@ router.get('/clients', async (req, res) => {
 });
 
 
-router.get('/clients:id', async (req, res) => {
+router.get('/clients/:id', async (req, res) => {
   try {
     const client = await clientController.getById(req.params.id);
-    if (!client) {
-      return res.status(404).json({ error: 'Клиент не найден' });
-    }
-    res.json(client);
+    if (!client) return res.status(404).json({ message: 'client not found' });
+    res.status(200).json(client);
   } catch (error) {
-    res.status(500).json({ error: 'Ошибка получения клиента' });
+    res.status(400).json({ error: error.message });
   }
 });
 
-router.put('/clients:id', async (req, res) => {
+router.put('/clients/:id', async (req, res) => {
+  const { id } = req.params;  // ID, по которому ищем запись
+  const updatedData = req.body;  // Новые данные для обновления
+ 
   try {
-    const updated = await clientController.update(req.params.id, req.body);
-    res.json({ message: 'Клиент обновлен', updated });
+    // Обновляем данные сотрудника по staff_id
+    const [updatedCount] = await Client.update(updatedData, {
+      where: { client_id: id },
+    });
+    
+    // Если запись не найдена или не было обновлено, возвращаем ошибку
+    if (updatedCount === 0) {
+      return res.status(404).json({ error: 'Record not found or not updated' });
+    }
+
+    // Если запись обновлена, возвращаем успешный ответ
+    res.json({ message: 'Record updated successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'Ошибка обновления клиента' });
+    console.error('Error updating record:', error);
+    res.status(500).json({ error: 'Failed to update record' });
   }
 });
+
+
 
 router.delete('/clients/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deletedCount = await Client.destroy({ where: { client_id: id } }); // Используем room_id
+    // Удаляем клиента
+    const deletedCount = await Client.destroy({ where: { client_id:id } });
+
     if (deletedCount === 0) {
-      return res.status(404).json({ error: 'Record not found' });
+      return res.status(404).json({ error: 'Client not found' });
     }
-    res.json({ message: 'Record deleted successfully' });
+
+    res.json({ message: 'Client deleted successfully. Related tours updated automatically.' });
   } catch (error) {
+    console.error('Error deleting client:', error);
     res.status(500).json({ error: error.message });
   }
 });

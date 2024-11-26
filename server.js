@@ -16,10 +16,12 @@ app.use(cors());
 
 // Middleware для обработки JSON
 
+
 app.use(express.json());
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'template.html'));
 });
+
 app.use(express.static(path.join(__dirname, 'dist')));
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);

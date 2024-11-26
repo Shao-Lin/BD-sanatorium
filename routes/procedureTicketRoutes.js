@@ -19,7 +19,7 @@ router.post('/procedureTickets', async (req, res) => {
 // Получение всех ProcedureTickets
 // procedureTicket.routes.js
 router.get('/procedureTickets', async (req, res) => {
-  const limit = parseInt(req.query.limit, 10) || 10; // Количество записей на страницу
+  const limit = 100 // Количество записей на страницу
   const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
   const offset = (page - 1) * limit;
 
@@ -53,11 +53,25 @@ router.get('/procedureTickets/:id', async (req, res) => {
 
 // Обновление ProcedureTicket
 router.put('/procedureTickets/:id', async (req, res) => {
+  const { id } = req.params;  // ID, по которому ищем запись
+  const updatedData = req.body;  // Новые данные для обновления
+
   try {
-    const updatedProcedureTicket = await procedureTicketController.update(req.params.id, req.body);
-    res.status(200).json(updatedProcedureTicket);
+    // Обновляем данные сотрудника по staff_id
+    const [updatedCount] = await ProcedureTicket.update(updatedData, {
+      where: { ticket_procedure_id: id },
+    });
+    
+    // Если запись не найдена или не было обновлено, возвращаем ошибку
+    if (updatedCount === 0) {
+      return res.status(404).json({ error: 'Record not found or not updated' });
+    }
+
+    // Если запись обновлена, возвращаем успешный ответ
+    res.json({ message: 'Record updated successfully' });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Error updating record:', error);
+    res.status(500).json({ error: 'Failed to update record' });
   }
 });
 
