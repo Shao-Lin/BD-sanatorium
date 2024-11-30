@@ -3,40 +3,10 @@ import axios from "axios";
 import { handleDelete,handleUpdate } from "./hendleDeleteUpdate.js";
 
 
-// Функция для отображения кнопки Create в каждой вкладке
-const showCreateButton = (nameTable) => {
-
-    const createButton = document.createElement('button');
-    createButton.id = 'createButton';
-    createButton.textContent = 'Create';
-    createButton.classList.add('btn', 'btn-success'); // Bootstrap стили для кнопки
-    createButton.style.marginTop = '10px'; // Отступ сверху
-    createButton.style.display = 'block'; // Отображение как блок для выравнивания
-    createButton.style.marginBottom = '20px'; // Отступ снизу, чтобы кнопка не прилипала к таблице
-
-    // Добавление обработчика события
-    createButton.addEventListener('click', () => {
-      window.location.href = `/create.html?table=${nameTable}&id=10`;
-      // Здесь можно вставить логику для перехода на страницу создания
-    });
-
-    // Добавляем кнопку под контейнер для всех вкладок
-    const tabContent = document.querySelector(`#nav-${nameTable}-tab`);
-    console.log(tabContent)
-    const container = document.querySelector(tabContent.getAttribute('data-bs-target'));
-    if (container) {
-      const marginDiv = document.createElement('div');
-      marginDiv.style.marginBottom = '20px'; // Отступ перед таблицей
-      container.insertBefore(createButton, container.firstChild);
-      container.insertBefore(marginDiv, createButton);
-    }
-};
-
 
 const renderTable = (data, target, totalPages, currentPage, nameTable) => {
   const titleObj = data[0]; // Предполагаем, что первая запись содержит заголовки
   const titles = Object.keys(titleObj);
-
   const idTable = titles[0]
   const sortedData = data.sort((a, b) => a[idTable] - b[idTable]);
   const table = document.createElement('table');
@@ -114,9 +84,6 @@ const renderTable = (data, target, totalPages, currentPage, nameTable) => {
   table.appendChild(tbody);
 
   pagination(currentPage, totalPages, nameTable);
-
-  // Добавление кнопки Create
-  showCreateButton(nameTable);
-};
+}
 
 export default renderTable

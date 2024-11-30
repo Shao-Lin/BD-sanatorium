@@ -1,6 +1,7 @@
 import express from 'express';
 import procedureTicketController from '../controllers/procedureTicketController.js';
 import { ProcedureTicket } from '../models/index.js';
+import db from '../models/index.js';
 
 const router = express.Router();
 
@@ -27,23 +28,41 @@ router.post('/procedureTickets', async (req, res) => {
 // Получение всех ProcedureTickets
 // procedureTicket.routes.js
 router.get('/procedureTickets', async (req, res) => {
-  const limit = 100 // Количество записей на страницу
-  const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
-  const offset = (page - 1) * limit;
+  const { procedure_room_id, procedure_id,staff_id,date_procedure,tour_id, page } = req.query;
 
   try {
-    const { rows: procedureTickets, count } = await ProcedureTicket.findAndCountAll({
-      limit,
-      offset,
-    });
+    const whereClause = {};
+    if (procedure_room_id) whereClause.procedure_room_id = procedure_room_id
+    if (procedure_id) whereClause.procedure_id = procedure_id
+    if (staff_id) whereClause.staff_id = staff_id
+    if (date_procedure) whereClause.date_procedure = date_procedure
+    if (tour_id) whereClause.tour_id = tour_id
 
-    res.json({
-      data: procedureTickets,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page,
-    });
+    if (page) {
+      // Логика пагинации
+      const limit = 200; // Количество записей на страницу
+      const offset = (page - 1) * limit;
+
+      const procedureTickets = await ProcedureTicket.findAndCountAll({
+        where: whereClause,
+        limit,
+        offset,
+      });
+
+      return res.json({
+        data: procedureTickets.rows,
+        total: procedureTickets.count,
+        totalPages: Math.ceil(procedureTickets.count / limit),
+        currentPage: page,
+      });
+    }
+
+    // Логика фильтрации без пагинации
+    const procedureTickets = await ProcedureTicket.findAll({ where: whereClause });
+    return res.json(procedureTickets);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error executing query:', error);
+    return res.status(500).json({ error: 'Error filtering procedure tickets data' });
   }
 });
 

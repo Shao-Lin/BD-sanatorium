@@ -84,9 +84,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const loadRecord = async () => {
     console.log('Loading record...');
     try {
-      const response = await axios.get(`/api/${table}?page=10`)
+      const response = await axios.get(`/api/${table}?page=5`)
       const page10 = response.data.data
-
+      console.log(page10)
       const titleObj = page10[0]; // Предполагаем, что первая запись содержит заголовки
       const titles = Object.keys(titleObj);
 

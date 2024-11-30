@@ -1,7 +1,7 @@
 import express from 'express';
 import staffController from '../controllers/staffController.js';
 import { Staff } from '../models/index.js'; // Убедитесь, что путь корректен
-
+import db from '../models/index.js';
 const router = express.Router();
 
 // Аналогично создаём маршруты для Staff
@@ -23,25 +23,40 @@ router.post('/staffs', async (req, res) => {
 });
 
 router.get('/staffs', async (req, res) => {
-  const limit = 100; // Количество записей на страницу
-  const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
-  const offset = (page - 1) * limit;
-  try {
-    const { rows: staff, count } = await Staff.findAndCountAll({
-      limit,
-      offset,
-      order:[],
-    });
+  const { full_name, phone_number,position, page } = req.query;
 
-    res.json({
-      data: staff,
-      totalPages: Math.ceil(count / limit), // Общее количество страниц
-      currentPage: page, // Текущая страница
-    });
+  try {
+    const whereClause = {};
+    if (full_name) whereClause.full_name = { [db.Sequelize.Op.like]: `%${full_name}%` };
+    if (position) whereClause.position = { [db.Sequelize.Op.like]: `%${position}%` };
+    if (phone_number) whereClause.phone_number = { [db.Sequelize.Op.like]: `%${phone_number}%` };
+
+    if (page) {
+      const limit = 200; // Количество записей на страницу
+      const offset = (page - 1) * limit;
+
+      const staff = await Staff.findAndCountAll({
+        where: whereClause,
+        limit,
+        offset,
+      });
+
+      return res.json({
+        data: staff.rows,
+        total: staff.count,
+        totalPages: Math.ceil(staff.count / limit),
+        currentPage: page,
+      });
+    }
+
+    const staff = await Staff.findAll({ where: whereClause });
+    return res.json(staff);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error executing query:', error);
+    return res.status(500).json({ error: 'Error fetching staff data' });
   }
 });
+
 
 
 router.get('/staffs/:id', async (req, res) => {

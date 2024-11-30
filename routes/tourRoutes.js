@@ -1,7 +1,7 @@
 import express from 'express';
 import tourController from '../controllers/tourController.js';
 import { Tour } from '../models/index.js'; // Убедитесь, что путь корректен
-
+import db from '../models/index.js';
 
 const router = express.Router();
 
@@ -25,25 +25,42 @@ router.post('/tours', async (req, res) => {
 
 // Получение всех Tours
 router.get('/tours', async (req, res) => {
-  const limit = 100 // Количество записей на страницу
-  const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
-  const offset = (page - 1) * limit;
+  const { client_id, check_in_date,check_out_date,tour_cost,room_id, page } = req.query;
 
   try {
-    const { rows: tours, count } = await Tour.findAndCountAll({
-      limit,
-      offset,
-    });
+    const whereClause = {};
+    if (client_id) whereClause.client_id = client_id
+    if (check_in_date) whereClause.check_in_date = check_in_date;
+    if (tour_cost) whereClause.tour_cost = tour_cost
+    if (check_out_date) whereClause.check_out_date = check_out_date;
+    if (room_id) whereClause.room_id = room_id;
 
-    res.json({
-      data: tours,
-      totalPages: Math.ceil(count / limit), // Общее количество страниц
-      currentPage: page, // Текущая страница
-    });
+    if (page) {
+      const limit = 200; // Количество записей на страницу
+      const offset = (page - 1) * limit;
+
+      const tours = await Tour.findAndCountAll({
+        where: whereClause,
+        limit,
+        offset,
+      });
+
+      return res.json({
+        data: tours.rows,
+        total: tours.count,
+        totalPages: Math.ceil(tours.count / limit),
+        currentPage: page,
+      });
+    }
+
+    const tours = await Tour.findAll({ where: whereClause });
+    return res.json(tours);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error executing query:', error);
+    return res.status(500).json({ error: 'Error fetching tour data' });
   }
 });
+
 
 // Получение Tour по ID
 router.get('/tours/:id', async (req, res) => {

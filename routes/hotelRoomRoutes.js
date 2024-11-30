@@ -1,6 +1,7 @@
 import express from 'express';
 import hotelRoomController from '../controllers/hotelRoomController.js';
 import { HotelRoom } from '../models/index.js';
+import db from '../models/index.js';
 
 const router = express.Router();
 
@@ -24,25 +25,43 @@ router.post('/hotelRooms', async (req, res) => {
 
 // hotelRoom.routes.js
 router.get('/hotelRooms', async (req, res) => {
-  const limit = 100; // Количество записей на страницу
-  const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
-  const offset = (page - 1) * limit;
-  try {
-    const { rows: room, count } = await HotelRoom.findAndCountAll({
-      limit,
-      offset,
-      order:[],
-    });
+  const { price,room_type,booking_status,occupancy_status, page } = req.query;
 
-    res.json({
-      data: room,
-      totalPages: Math.ceil(count / limit), // Общее количество страниц
-      currentPage: page, // Текущая страница
-    });
+  try {
+    const whereClause = {};
+    if (room_type) whereClause.room_type = { [db.Sequelize.Op.like]: `%${room_type}%` };; // Предполагается точное соответствие
+    if (price) whereClause.price = { [db.Sequelize.Op.like]: `%${price}%` };
+    if (occupancy_status) whereClause.occupancy_status = { [db.Sequelize.Op.like]: `%${occupancy_status}%` };
+    if (booking_status) whereClause.booking_status = { [db.Sequelize.Op.like]: `%${booking_status}%` };;
+
+    if (page) {
+      // Логика пагинации
+      const limit = 200; // Количество записей на страницу
+      const offset = (page - 1) * limit;
+
+      const hotelRooms = await HotelRoom.findAndCountAll({
+        where: whereClause,
+        limit,
+        offset,
+      });
+
+      return res.json({
+        data: hotelRooms.rows,
+        total: hotelRooms.count,
+        totalPages: Math.ceil(hotelRooms.count / limit),
+        currentPage: page,
+      });
+    }
+
+    // Логика фильтрации без пагинации
+    const hotelRooms = await HotelRoom.findAll({ where: whereClause });
+    return res.json(hotelRooms);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error executing query:', error);
+    return res.status(500).json({ error: 'Error filtering hotel rooms data' });
   }
 });
+
 
 
 router.get('/hotelRooms/:id', async (req, res) => {

@@ -1,6 +1,7 @@
 import express from 'express';
 import procedureRoomController from '../controllers/procedureRoomController.js';
 import { ProcedureRoom } from '../models/index.js';
+import db from '../models/index.js';
 
 const router = express.Router();
 
@@ -24,26 +25,42 @@ router.post('/procedureRooms', async (req, res) => {
 
 // procedureRoom.routes.js
 router.get('/procedureRooms', async (req, res) => {
-  const limit = 100 // Количество записей на страницу
-  const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
-  const offset = (page - 1) * limit;
+  const { location,service_type,occupancy_status, page } = req.query;
 
   try {
-    const { rows: procedureRooms, count } = await ProcedureRoom.findAndCountAll({
-      limit,
-      offset,
-      order:[],
-    });
+    const whereClause = {};
+    if (location) whereClause.location = { [db.Sequelize.Op.like]: `%${location}%` };; // Предполагается точное соответствие
+    if (service_type) whereClause.service_type = { [db.Sequelize.Op.like]: `%${service_type}%` };
+    if (occupancy_status) whereClause.occupancy_status = { [db.Sequelize.Op.like]: `%${occupancy_status}%` };
 
-    res.json({
-      data: procedureRooms,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page,
-    });
+    if (page) {
+      // Логика пагинации
+      const limit = 200; // Количество записей на страницу
+      const offset = (page - 1) * limit;
+
+      const procedureRooms = await ProcedureRoom.findAndCountAll({
+        where: whereClause,
+        limit,
+        offset,
+      });
+
+      return res.json({
+        data: procedureRooms.rows,
+        total: procedureRooms.count,
+        totalPages: Math.ceil(procedureRooms.count / limit),
+        currentPage: page,
+      });
+    }
+
+    // Логика фильтрации без пагинации
+    const procedureRooms = await ProcedureRoom.findAll({ where: whereClause });
+    return res.json(procedureRooms);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error executing query:', error);
+    return res.status(500).json({ error: 'Error filtering procedure rooms data' });
   }
 });
+
 
 
 router.get('/procedureRooms/:id', async (req, res) => {

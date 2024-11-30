@@ -8,7 +8,8 @@ export default {
   entry: {
     main: './src/index.js', // Главная точка входа
     update: './src/update.js', // Вход для update.js
-    create: './src/create.js'
+    create: './src/create.js',
+    search: './src/search.js'
   },
   output: {
     filename: '[name].bundle.js', // Создаст main.bundle.js и update.bundle.js
@@ -55,6 +56,11 @@ export default {
     new CopyWebpackPlugin({
       patterns: [
         { from: './create.html', to: './' }, // Копируем create.html в dist
+      ],
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: './search.html', to: './' }, // Копируем update.html в dist
       ],
     }),
   ],

@@ -1,6 +1,7 @@
 import express from 'express';
 import clientController from '../controllers/clientController.js';
 import { Client } from '../models/index.js';
+import db from '../models/index.js';
 
 const router = express.Router();
 
@@ -23,25 +24,41 @@ router.post('/clients', async (req, res) => {
 
 // client.routes.js
 router.get('/clients', async (req, res) => {
-  const limit = 100; // Количество записей на страницу
-  const page = parseInt(req.query.page, 10) || 1;   // Текущая страница
-  const offset = (page - 1) * limit;
-  try {
-    const { rows: client, count } = await Client.findAndCountAll({
-      limit,
-      offset,
-      order:[],
-    });
+  const { birth_date, phone_number, page } = req.query;
 
-    res.json({
-      data: client,
-      totalPages: Math.ceil(count / limit), // Общее количество страниц
-      currentPage: page, // Текущая страница
-    });
+  try {
+    const whereClause = {};
+    if (birth_date) whereClause.birth_date = birth_date
+    if (phone_number) whereClause.phone_number = { [db.Sequelize.Op.like]: `%${phone_number}%` };
+
+    if (page) {
+      // Логика пагинации
+      const limit = 200; // Количество записей на страницу
+      const offset = (page - 1) * limit;
+
+      const clients = await Client.findAndCountAll({
+        where: whereClause,
+        limit,
+        offset,
+      });
+
+      return res.json({
+        data: clients.rows,
+        total: clients.count,
+        totalPages: Math.ceil(clients.count / limit),
+        currentPage: page,
+      });
+    }
+
+    // Логика фильтрации без пагинации
+    const clients = await Client.findAll({ where: whereClause });
+    return res.json(clients);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error executing query:', error);
+    return res.status(500).json({ error: 'Error filtering clients data' });
   }
 });
+
 
 
 router.get('/clients/:id', async (req, res) => {
