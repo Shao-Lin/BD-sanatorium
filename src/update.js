@@ -5,9 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const table = urlParams.get('table');
   const id = urlParams.get('id');
 
-  console.log('Table:', table);
-  console.log('ID:', id);
-
   // Контейнер для формы
   const formContainer = document.getElementById('formContainer');
 
@@ -100,7 +97,5 @@ document.addEventListener('DOMContentLoaded', () => {
   // Загружаем данные при загрузке страницы
   if (formContainer) {
     loadRecord();
-  } else {
-    console.error('Form container not found');
   }
 });

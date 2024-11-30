@@ -2,6 +2,7 @@ import axios from 'axios';
 import renderTable from './createTable.js';
 import showCreateButton from './createCreateButton.js';
 import showSearchButton from './creaateSearchButton.js';
+import labelCurrentPage from './labelCurrentPage.js';
 
 export default () => {
   const container = document.querySelector('.container');
@@ -26,6 +27,7 @@ export default () => {
         renderTable(data.data, target, data.totalPages, data.currentPage,nameTable);
         showCreateButton(nameTable)
         showSearchButton(nameTable)
+        labelCurrentPage(data.currentPage,nameTable)
       } catch (error) {
         console.error('Error fetching data:', error);
       }
