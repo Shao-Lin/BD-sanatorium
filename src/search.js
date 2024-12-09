@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
 
   // Функция для создания формы
-  const generateUpdateForm = (record) => {
+  const generateUpdateForm = async (record) => {
     const form = document.createElement('form');
     form.id = 'searchForm';
 
@@ -18,12 +18,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     const otherFields = Object.keys(record)
       .filter((key) => key !== idFieldKey) // Исключаем ID, так как оно уже добавлено
       .map(
-        (key) => `
+        (key) => {
+          if(key === 'booking_status' || key === 'occupancy_status') {
+            return `<label for="${key}">${key}</label>
+            <div class="form-check">
+  <input class="form-check-input" type="radio" name="${key}" id="flexRadioDefault1" value="true">
+  <label class="form-check-label" for="flexRadioDefault1">
+    true
+  </label>
+</div>
+<div class="form-check">
+  <input class="form-check-input" type="radio" name="${key}" id="flexRadioDefault2" checked value="false">
+  <label class="form-check-label" for="flexRadioDefault2">
+    false
+  </label>
+</div>`
+          }
+          else if(key.includes('id')) {
+            return `<label for="${key}">${key}</label>
+            <div class="dropdown-${key}">
+  <button class="btn btn-secondary dropdown-toggle" type="button" id="${key}" data-bs-toggle="dropdown" aria-expanded="false">
+    Выбрать ID
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="${key}"></ul>
+  <input type="hidden" name="${key}" id="${key}-hidden">
+</div>`
+          }
+          else {
+            return `
           <div class="mb-3">
             <label for="${key}" class="form-label">${key}</label>
             <input type="text" class="form-control" id="${key}" name="${key}">
-          </div>
-        `
+          </div> `
+          }
+        }
       )
       .join('');
 
@@ -38,6 +66,59 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Очищаем контейнер и вставляем форму
     formContainer.innerHTML = '';
     formContainer.appendChild(form);
+    const objTables = {
+      procedure_id: 'procedures',
+      procedure_room_id: 'procedureRooms',
+      staff_id: 'staffs',
+      tour_id: 'tours',
+      client_id: 'clients',
+      room_id: 'rooms'
+    }
+
+    const dropDownBtn = document.querySelectorAll('[data-bs-toggle="dropdown"]')
+    console.log(dropDownBtn)
+    dropDownBtn.forEach((btn) => {
+      const idBtn = btn.id   // id кнопки такое же как и название столбца
+      const ul = document.querySelector(`[aria-labelledby="${idBtn}"]`)
+      btn.addEventListener('click',async (event) => {
+        
+        if(ul.classList.contains('show')){
+          ul.textContent = ''
+          ul.classList.remove('show')
+          btn.setAttribute('aria-expanded','false')
+        } else {
+          btn.setAttribute('aria-expanded','true')
+        const allTables = await axios.get(`/api/${objTables[idBtn]}`)
+        const sortedData = allTables.data.sort((a, b) => a[idBtn] - b[idBtn]);
+        console.log(allTables)
+        ul.classList.add('show')
+        sortedData.forEach((item) => {
+          let nameId = ''
+          if(item.room_id && item.service_type) {
+            nameId = item.room_id
+          } else {
+            nameId = item[idBtn]
+          }
+          const li = document.createElement('li')
+
+          li.textContent = nameId
+          li.classList.add('dropdown-item')
+          ul.appendChild(li)
+
+          li.addEventListener('click',(event) => {
+            ul.textContent = ''
+            ul.classList.remove('show')
+            btn.setAttribute('aria-expanded','false')
+            btn.textContent = li.textContent
+            const hiddenInput = document.querySelector(`#${idBtn}-hidden`)
+            hiddenInput.value = li.textContent
+            console.log(hiddenInput)
+            })
+        })
+        } 
+    })
+    
+    })
 
     // Добавляем обработчик отправки формы
     form.addEventListener('submit', async (event) => {
@@ -52,6 +133,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       
         try {
+          console.log(filters)
           const response = await axios.get(`/api/${nameTable}`, { params: filters });
           console.log('Filtered data:', response.data);
           

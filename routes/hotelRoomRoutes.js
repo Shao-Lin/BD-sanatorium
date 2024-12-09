@@ -30,9 +30,9 @@ router.get('/hotelRooms', async (req, res) => {
   try {
     const whereClause = {};
     if (room_type) whereClause.room_type = { [db.Sequelize.Op.like]: `%${room_type}%` };; // Предполагается точное соответствие
-    if (price) whereClause.price = { [db.Sequelize.Op.like]: `%${price}%` };
-    if (occupancy_status) whereClause.occupancy_status = { [db.Sequelize.Op.like]: `%${occupancy_status}%` };
-    if (booking_status) whereClause.booking_status = { [db.Sequelize.Op.like]: `%${booking_status}%` };;
+    if (price) whereClause.price = price
+    if (occupancy_status) whereClause.occupancy_status = occupancy_status
+    if (booking_status) whereClause.booking_status = booking_status
 
     if (page) {
       // Логика пагинации

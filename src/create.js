@@ -30,12 +30,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     const otherFields = Object.keys(record)
       .filter((key) => key !== idFieldKey) // Исключаем ID, так как оно уже добавлено
       .map(
-        (key) => `
+        (key) => {
+          if(key === 'booking_status' || key === 'occupancy_status') {
+            return `<label for="${key}">${key}</label>
+            <div class="form-check">
+  <input class="form-check-input" type="radio" name="${key}" id="flexRadioDefault1" value="true">
+  <label class="form-check-label" for="flexRadioDefault1">
+    true
+  </label>
+</div>
+<div class="form-check">
+  <input class="form-check-input" type="radio" name="${key}" id="flexRadioDefault2" checked value="false">
+  <label class="form-check-label" for="flexRadioDefault2">
+    false
+  </label>
+</div>`
+          }
+          else {
+            return `
           <div class="mb-3">
             <label for="${key}" class="form-label">${key}</label>
             <input type="text" class="form-control" id="${key}" name="${key}">
-          </div>
-        `
+          </div> `
+          }
+        }
       )
       .join('');
 

@@ -31,7 +31,7 @@ router.get('/procedureRooms', async (req, res) => {
     const whereClause = {};
     if (location) whereClause.location = { [db.Sequelize.Op.like]: `%${location}%` };; // Предполагается точное соответствие
     if (service_type) whereClause.service_type = { [db.Sequelize.Op.like]: `%${service_type}%` };
-    if (occupancy_status) whereClause.occupancy_status = { [db.Sequelize.Op.like]: `%${occupancy_status}%` };
+    if (occupancy_status) whereClause.occupancy_status = occupancy_status
 
     if (page) {
       // Логика пагинации

@@ -29,7 +29,7 @@ router.get('/staffs', async (req, res) => {
     const whereClause = {};
     if (full_name) whereClause.full_name = { [db.Sequelize.Op.like]: `%${full_name}%` };
     if (position) whereClause.position = { [db.Sequelize.Op.like]: `%${position}%` };
-    if (phone_number) whereClause.phone_number = { [db.Sequelize.Op.like]: `%${phone_number}%` };
+    if (phone_number) whereClause.phone_number = phone_number
 
     if (page) {
       const limit = 200; // Количество записей на страницу

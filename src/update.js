@@ -29,14 +29,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const otherFields = Object.keys(record)
       .filter((key) => key !== idFieldKey) // Исключаем ID, так как оно уже добавлено
       .map(
-        (key) => `
+        (key) =>{
+          if(key === 'booking_status' || key === 'occupancy_status') {
+            return `<label for="${key}">${key}</label>
+            <div class="form-check-${key}">
+  <input class="form-check-input" type="radio" name="${key}" id="${key}1" checked value="true">
+  <label class="form-check-label" for="${key}1">
+    true
+  </label>
+</div>
+<div class="form-check">
+  <input class="form-check-input" type="radio" name="${key}" id="${key}2" value="false">
+  <label class="form-check-label" for="${key}2">
+    false
+  </label>
+</div>`
+          }
+          else {
+            return `
           <div class="mb-3">
             <label for="${key}" class="form-label">${key}</label>
             <input type="text" class="form-control" id="${key}" name="${key}" value="${record[key]}">
-          </div>
-        `
+          </div> `
+          }
+        }
       )
       .join('');
+      
+
 
     // Кнопка отправки
     const submitButton = `
@@ -99,3 +119,5 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRecord();
   }
 });
+
+
