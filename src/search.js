@@ -100,9 +100,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             nameId = item[idBtn]
           }
           const li = document.createElement('li')
-
-          li.textContent = nameId
+          const option = document.createElement('option')
+          li.appendChild(option)
+          // option.textContent = nameId
+          option.value = nameId
           li.classList.add('dropdown-item')
+          
+          switch(objTables[idBtn]) {
+            case 'procedures':
+              option.textContent = item.name
+              break
+            case 'procedureRooms':
+              option.textContent = item.service_type
+              break
+            case 'staffs':
+              option.textContent = item.full_name
+              break
+            case 'tours':
+              option.textContent = item.check_in_date  
+            default:
+              console.log('bzzzzzzzz')
+          }
+
           ul.appendChild(li)
 
           li.addEventListener('click',(event) => {
@@ -111,8 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.setAttribute('aria-expanded','false')
             btn.textContent = li.textContent
             const hiddenInput = document.querySelector(`#${idBtn}-hidden`)
-            hiddenInput.value = li.textContent
-            console.log(hiddenInput)
+            hiddenInput.value = option.value
             })
         })
         } 
